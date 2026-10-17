@@ -1,0 +1,75 @@
+# Carte 1 — Bunker 13 (inspirée du petit bunker de survie du mode d'origine)
+# Coordonnées relatives à arena.origin. Une salle = une boîte [min] → [max] :
+#   y = min.y → sol, y = max.y → plafond, bords en x/z → murs.
+# Deux salles voisines partagent leur mur (même coordonnée).
+id: bunker
+order: 1
+display-name: "Bunker 13"
+icon: IRON_TRAPDOOR
+difficulty: "Facile"
+players: "1-4 joueurs"
+playable: true
+description:
+  - "<gray>Un petit bunker oublié au milieu de nulle part."
+  - "<gray>Peu de pièces, beaucoup de fenêtres :"
+  - "<gray>parfait pour apprendre à survivre."
+
+theme:
+  floor: [STONE_BRICKS, STONE_BRICKS, CRACKED_STONE_BRICKS, MOSSY_STONE_BRICKS]
+  wall: [DEEPSLATE_BRICKS, DEEPSLATE_BRICKS, CRACKED_DEEPSLATE_BRICKS, POLISHED_DEEPSLATE]
+  ceiling: [DARK_OAK_PLANKS, SPRUCE_PLANKS]
+  pen-wall: [MUD_BRICKS, PACKED_MUD]
+  plank: OAK_PLANKS
+  door: DARK_OAK_LOG
+  light-spacing: 6
+  cobweb-chance: 0.5
+
+rooms:
+  start:
+    name: "Salle de départ"
+    min: [0, 0, 0]
+    max: [16, 5, 12]
+    starting: true
+  radio:
+    name: "Salle radio"
+    min: [16, 0, 0]
+    max: [28, 5, 12]
+  depot:
+    name: "Dépôt"
+    min: [0, 0, 12]
+    max: [16, 5, 22]
+
+# Fenêtres : une boîte plate dans un mur extérieur (2 de haut minimum).
+# facing = direction de l'EXTÉRIEUR (là où apparaissent les zombies).
+windows:
+  - { id: w1, room: start, min: [3, 1, 0], max: [5, 2, 0], facing: NORTH }
+  - { id: w2, room: start, min: [11, 1, 0], max: [13, 2, 0], facing: NORTH }
+  - { id: w3, room: start, min: [0, 1, 4], max: [0, 2, 6], facing: WEST }
+  - { id: w4, room: radio, min: [20, 1, 0], max: [22, 2, 0], facing: NORTH }
+  - { id: w5, room: radio, min: [28, 1, 5], max: [28, 2, 7], facing: EAST }
+  - { id: w6, room: depot, min: [4, 1, 22], max: [6, 2, 22], facing: SOUTH }
+  - { id: w7, room: depot, min: [11, 1, 22], max: [13, 2, 22], facing: SOUTH }
+  - { id: w8, room: depot, min: [0, 1, 15], max: [0, 2, 17], facing: WEST }
+
+# Portes : débris dans un mur partagé, achetables avec des points.
+doors:
+  - { id: d_radio, name: "Salle radio", cost: 750, min: [16, 1, 5], max: [16, 3, 7], rooms: [start, radio] }
+  - { id: d_depot, name: "Dépôt", cost: 1000, min: [7, 1, 12], max: [9, 3, 12], rooms: [start, depot] }
+
+# Points de départ des joueurs (x, y, z, orientation)
+player-spawns:
+  - [4.5, 1, 6.5, 0]
+  - [12.5, 1, 6.5, 0]
+  - [4.5, 1, 9.5, 180]
+  - [12.5, 1, 9.5, 180]
+
+decor:
+  - { pos: [1, 1, 11], block: BARREL }
+  - { pos: [2, 1, 11], block: BARREL }
+  - { pos: [15, 1, 1], block: CRAFTING_TABLE }
+  - { pos: [27, 1, 11], block: JUKEBOX }
+  - { pos: [27, 1, 1], block: LECTERN }
+  - { pos: [17, 1, 11], block: BARREL }
+  - { pos: [1, 1, 21], block: BARREL }
+  - { pos: [15, 1, 21], block: BARREL }
+  - { pos: [15, 2, 21], block: BARREL }

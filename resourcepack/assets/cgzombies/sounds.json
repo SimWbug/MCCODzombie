@@ -1,0 +1,8 @@
+{
+  "weapon.pistol.fire": { "subtitle": "Tir de pistolet", "sounds": [ "cgzombies:weapon/pistol_fire" ] },
+  "weapon.reload": { "subtitle": "Rechargement", "sounds": [ "cgzombies:weapon/reload" ] },
+  "weapon.empty": { "subtitle": "Chargeur vide", "sounds": [ "cgzombies:weapon/empty" ] },
+  "ui.hitmarker": { "sounds": [ "cgzombies:ui/hitmarker" ] },
+  "round.start": { "subtitle": "Nouvelle manche", "sounds": [ "cgzombies:round/start" ] },
+  "round.end": { "subtitle": "Fin de manche", "sounds": [ "cgzombies:round/end" ] }
+}

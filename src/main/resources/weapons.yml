@@ -1,0 +1,31 @@
+# Armes. Étape 1 : seul le pistolet de départ est utilisé.
+# Les armes murales et la boîte mystère arrivent à l'étape 2 (même format).
+#
+# damage            dégâts par balle (un zombie de manche 1 a 8 PV)
+# headshot-multiplier
+# fire-delay-ticks  délai mini entre deux tirs
+# magazine/reserve  chargeur / munitions de réserve
+# reload-ticks      durée du rechargement (touche F)
+# spread            dispersion (0 = parfait)
+# pellets           projectiles par tir (fusil à pompe)
+weapons:
+  pistol:
+    name: "<gray>Pistolet de service"
+    lore:
+      - "<dark_gray>Arme de départ"
+      - "<dark_gray>Clic droit : tirer · F : recharger"
+    material: IRON_HORSE_ARMOR
+    item-model: "cgzombies:pistol"
+    damage: 4.0
+    headshot-multiplier: 2.0
+    fire-delay-ticks: 5
+    magazine: 8
+    reserve: 40
+    reload-ticks: 32
+    range: 48
+    spread: 0.012
+    pellets: 1
+    sounds:
+      fire: { sound: "cgzombies:weapon.pistol.fire", volume: 1.0, pitch: 1.0 }
+      reload: { sound: "cgzombies:weapon.reload", volume: 0.9, pitch: 1.0 }
+      empty: { sound: "cgzombies:weapon.empty", volume: 0.9, pitch: 1.0 }

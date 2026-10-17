@@ -1,0 +1,147 @@
+# ─────────────────────────────────────────────────────────────
+#  CleanZombies — configuration générale
+#  Toutes les valeurs de gameplay sont ici. Les cartes sont dans maps/,
+#  les armes dans weapons.yml. /zombies reload recharge tout (hors partie).
+#  Durées : "ticks" = 1/20 de seconde.
+# ─────────────────────────────────────────────────────────────
+
+arena:
+  # Monde vide créé automatiquement et réservé au mode Zombies
+  world: cg_zombies
+  # Coin de l'arène dans ce monde (les coordonnées des cartes sont relatives à ce point)
+  origin: [0, 64, 0]
+
+# Commande exécutée par le joueur pour revenir au hub (refus du pack, fin de partie sans position sauvegardée).
+# Laisse vide pour téléporter au spawn du monde principal.
+hub-command: "hub"
+
+lobby:
+  default-map: bunker
+  min-players: 1
+  max-players: 4
+  countdown-seconds: 15
+  # Compte à rebours réduit quand le salon est plein
+  full-countdown-seconds: 5
+
+rounds:
+  intermission-seconds: 10
+  # 0 = manches infinies. Sinon, atteindre cette manche = victoire.
+  max-round: 0
+  # Nombre de zombies d'une manche :
+  #   (base + linear*(manche-1) + quadratic*(manche-1)²) × (1 + extra-per-player*(joueurs-1)), plafonné à cap
+  count:
+    base: 6
+    linear: 2.0
+    quadratic: 0.12
+    extra-per-player: 0.5
+    cap: 250
+  # Vie d'un zombie standard :
+  #   manche ≤ linear-until : base + linear*(manche-1)
+  #   au-delà : valeur précédente × multiplier^(manche-linear-until)
+  health:
+    base: 8.0
+    linear: 4.0
+    linear-until: 9
+    multiplier: 1.1
+  # Délai entre deux apparitions : max(min, start - decay*(manche-1))
+  spawn-interval:
+    start-ticks: 40
+    min-ticks: 8
+    decay-per-round: 3
+  # Zombies vivants en même temps : base + per-extra-player*(joueurs-1), plafonné à cap
+  max-alive:
+    base: 10
+    per-extra-player: 4
+    cap: 28
+
+# Variantes de zombies. "standard" est obligatoire et sert par défaut.
+# Les autres sont tirées dans l'ordre : chance = min(max, base + per-round*(manche-min-round)).
+zombie-types:
+  standard:
+    min-round: 1
+    speed: 0.23
+    damage: 7.0
+    health-multiplier: 1.0
+    knockback-resistance: 0.4
+    color: "4B5320"
+  fast:
+    min-round: 4
+    chance-base: 0.12
+    chance-per-round: 0.03
+    chance-max: 0.5
+    speed: 0.31
+    damage: 6.0
+    health-multiplier: 0.8
+    knockback-resistance: 0.2
+    color: "7A2E1D"
+  brute:
+    min-round: 6
+    chance-base: 0.05
+    chance-per-round: 0.01
+    chance-max: 0.15
+    speed: 0.20
+    damage: 10.0
+    health-multiplier: 2.5
+    knockback-resistance: 0.9
+    color: "2B2B2B"
+
+points:
+  start: 500
+  hit: 10
+  kill: 50
+  headshot-bonus: 50
+  melee-kill-bonus: 80
+  repair: 10
+  # Points max gagnés par joueur, par fenêtre et par manche en réparant
+  repair-cap-per-window: 50
+
+player:
+  max-health: 20.0
+  # Les joueurs tombés reviennent au début de la manche suivante (en attendant la réanimation de l'étape 3)
+  respawn-next-round: true
+  starting-weapon: pistol
+
+melee:
+  damage: 5.0
+  cooldown-ticks: 12
+
+barricades:
+  # Temps qu'un zombie met à arracher une planche
+  tear-ticks: 30
+  # Temps (accroupi) pour reposer une planche
+  repair-ticks: 12
+  repair-range: 2.5
+  # Les balles traversent les planches (comme dans le mode d'origine)
+  shoot-through: true
+
+zombies:
+  # Un zombie qui n'avance plus pendant ce temps est retiré puis remis dans la file d'apparition
+  stuck-timeout-ticks: 400
+
+items:
+  # Utilise les modèles 3D du pack (item_model). Mets false pour tester sans pack.
+  custom-models: true
+
+resource-pack:
+  # URL publique du zip (ton NAS, GitHub Releases...). Vide = pas de pack (mode dev, avertissement en console).
+  url: ""
+  # SHA-1 du zip (fourni par le workflow GitHub : CleanZombies-pack.sha1)
+  sha1: ""
+  required: true
+  prompt: "<gray>Le mode Zombies a besoin de son pack (armes, sons, interface)."
+  unload-on-leave: true
+  timeout-seconds: 60
+
+sounds:
+  round-start: { sound: "cgzombies:round.start", volume: 1.0, pitch: 1.0 }
+  round-end: { sound: "cgzombies:round.end", volume: 1.0, pitch: 1.0 }
+  game-over: { sound: "minecraft:entity.wither.death", volume: 0.6, pitch: 0.5 }
+  countdown: { sound: "minecraft:block.note_block.hat", volume: 1.0, pitch: 1.2 }
+  purchase: { sound: "minecraft:block.note_block.chime", volume: 1.0, pitch: 1.4 }
+  deny: { sound: "minecraft:block.note_block.bass", volume: 1.0, pitch: 0.6 }
+  repair: { sound: "minecraft:block.wood.place", volume: 1.0, pitch: 0.9 }
+  tear: { sound: "minecraft:entity.zombie.break_wooden_door", volume: 0.6, pitch: 1.3 }
+  door-open: { sound: "minecraft:block.wood.break", volume: 1.0, pitch: 0.7 }
+  hitmarker: { sound: "cgzombies:ui.hitmarker", volume: 0.7, pitch: 1.0 }
+  melee: { sound: "minecraft:entity.player.attack.sweep", volume: 0.8, pitch: 1.3 }
+  down: { sound: "minecraft:entity.player.hurt", volume: 1.0, pitch: 0.6 }

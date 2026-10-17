@@ -1,0 +1,22 @@
+name: CleanZombies
+version: '${version}'
+main: fr.cleangang.zombies.ZombiesPlugin
+api-version: '${apiVersion}'
+author: Simon (CleanGang)
+description: Mode Zombies coopératif par manches pour CleanGang.
+
+commands:
+  zombies:
+    description: Mode Zombies (menu, rejoindre, administration).
+    usage: /zombies <menu|join|leave|start|stop|reset|map|status|debug|reload>
+    aliases: [zm]
+
+permissions:
+  cleanzombies.play:
+    description: Ouvrir le menu, rejoindre et quitter une partie.
+    default: true
+  cleanzombies.admin:
+    description: Lancer, arrêter, réinitialiser, diagnostiquer et recharger le mode.
+    default: op
+    children:
+      cleanzombies.play: true

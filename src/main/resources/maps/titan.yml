@@ -1,0 +1,13 @@
+# Carte 4 — Complexe Titan (laboratoire, usine, téléporteurs, station d'amélioration)
+# Plan modulaire prévu pour l'étape 5. Visible dans le menu, pas encore jouable.
+id: titan
+order: 4
+display-name: "Complexe Titan"
+icon: END_PORTAL_FRAME
+difficulty: "Expert"
+players: "2-4 joueurs"
+playable: false
+description:
+  - "<gray>Un complexe industriel secret. Rétablis le courant,"
+  - "<gray>relie les téléporteurs et trouve la station"
+  - "<gray>d'amélioration des armes."
