@@ -1,6 +1,7 @@
 # Carte 2 — Sanatorium Sainte-Lucie (asile délabré, deux zones de départ séparées)
 # Plan modulaire prévu pour l'étape 5. Visible dans le menu, pas encore jouable.
 id: sanatorium
+file-version: 2
 order: 2
 display-name: "Sanatorium Sainte-Lucie"
 icon: WHITE_BED

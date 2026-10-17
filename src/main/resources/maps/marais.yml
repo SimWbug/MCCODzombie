@@ -1,6 +1,7 @@
 # Carte 3 — Marais de Kurohama (marécage brumeux, huttes et pontons)
 # Plan modulaire prévu pour l'étape 5. Visible dans le menu, pas encore jouable.
 id: marais
+file-version: 2
 order: 3
 display-name: "Marais de Kurohama"
 icon: LILY_PAD

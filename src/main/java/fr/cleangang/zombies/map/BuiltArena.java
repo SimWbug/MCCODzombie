@@ -22,13 +22,17 @@ public final class BuiltArena {
     public final List<DoorRuntime> doors;
     public final List<Location> playerSpawns;
     public final BoundingBox bounds;
+    public final List<WallBuySpot> wallBuys;
+    /** null si la carte n'a pas de boîte mystère. */
+    public final BoxSpot box;
     private final Map<BlockPos, Barricade> barricadeCells;
     private final Map<BlockPos, DoorRuntime> doorCells;
     private final Set<String> unlockedRooms = new HashSet<>();
 
     BuiltArena(MapDefinition def, World world, long seed, List<Barricade> barricades, List<DoorRuntime> doors,
                List<Location> playerSpawns, BoundingBox bounds,
-               Map<BlockPos, Barricade> barricadeCells, Map<BlockPos, DoorRuntime> doorCells) {
+               Map<BlockPos, Barricade> barricadeCells, Map<BlockPos, DoorRuntime> doorCells,
+               List<WallBuySpot> wallBuys, BoxSpot box) {
         this.def = def;
         this.world = world;
         this.seed = seed;
@@ -38,6 +42,8 @@ public final class BuiltArena {
         this.bounds = bounds;
         this.barricadeCells = barricadeCells;
         this.doorCells = doorCells;
+        this.wallBuys = Collections.unmodifiableList(wallBuys);
+        this.box = box;
         resetState();
     }
 
@@ -79,6 +85,16 @@ public final class BuiltArena {
 
     public DoorRuntime doorAt(Block b) {
         return b == null ? null : doorCells.get(BlockPos.of(b));
+    }
+
+    public WallBuySpot wallBuyAt(Block b) {
+        if (b == null) return null;
+        for (WallBuySpot w : wallBuys) if (w.wall().equals(b)) return w;
+        return null;
+    }
+
+    public boolean isBox(Block b) {
+        return b != null && box != null && box.chest().equals(b);
     }
 
     public boolean contains(Location loc, double margin) {

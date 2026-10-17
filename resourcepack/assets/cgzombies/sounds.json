@@ -1,8 +1,19 @@
 {
   "weapon.pistol.fire": { "subtitle": "Tir de pistolet", "sounds": [ "cgzombies:weapon/pistol_fire" ] },
+  "weapon.garand.fire": { "subtitle": "Tir de fusil", "sounds": [ "cgzombies:weapon/garand_fire" ] },
+  "weapon.garand.ping": { "subtitle": "Clip éjecté", "sounds": [ "cgzombies:weapon/garand_ping" ] },
+  "weapon.mp40.fire": { "subtitle": "Rafale", "sounds": [ "cgzombies:weapon/mp40_fire" ] },
+  "weapon.raygun.fire": { "subtitle": "Tir laser", "sounds": [ "cgzombies:weapon/raygun_fire" ] },
+  "weapon.raygun.impact": { "subtitle": "Impact laser", "sounds": [ "cgzombies:weapon/raygun_impact" ] },
   "weapon.reload": { "subtitle": "Rechargement", "sounds": [ "cgzombies:weapon/reload" ] },
   "weapon.empty": { "subtitle": "Chargeur vide", "sounds": [ "cgzombies:weapon/empty" ] },
   "ui.hitmarker": { "sounds": [ "cgzombies:ui/hitmarker" ] },
   "round.start": { "subtitle": "Nouvelle manche", "sounds": [ "cgzombies:round/start" ] },
-  "round.end": { "subtitle": "Fin de manche", "sounds": [ "cgzombies:round/end" ] }
+  "round.end": { "subtitle": "Fin de manche", "sounds": [ "cgzombies:round/end" ] },
+  "box.roll": { "subtitle": "La boîte tourne", "sounds": [ "cgzombies:box/roll" ] },
+  "box.reward": { "subtitle": "Arme tirée", "sounds": [ "cgzombies:box/reward" ] },
+  "powerup.spawn": { "subtitle": "Bonus apparu", "sounds": [ "cgzombies:powerup/spawn" ] },
+  "powerup.max_ammo": { "subtitle": "Munitions max", "sounds": [ "cgzombies:powerup/max_ammo" ] },
+  "powerup.nuke": { "subtitle": "Bombe", "sounds": [ "cgzombies:powerup/nuke" ] },
+  "powerup.double_points": { "subtitle": "Points x2", "sounds": [ "cgzombies:powerup/double_points" ] }
 }

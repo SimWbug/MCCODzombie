@@ -36,6 +36,7 @@ public final class PluginSettings {
     public final int stuckTimeoutTicks;
     public final boolean customModels;
     public final Pack pack;
+    public final PowerUps powerUps;
     public final Map<String, SoundRef> sounds;
 
     private PluginSettings(FileConfiguration c, Cfg cfg) {
@@ -96,6 +97,7 @@ public final class PluginSettings {
 
         customModels = c.getBoolean("items.custom-models", true);
         pack = new Pack(cfg.section(c, "resource-pack"), cfg);
+        powerUps = new PowerUps(c.getConfigurationSection("power-ups"), cfg);
 
         Map<String, SoundRef> snd = new HashMap<>();
         ConfigurationSection sounds = c.getConfigurationSection("sounds");
@@ -180,6 +182,28 @@ public final class PluginSettings {
             meleeKillBonus = cfg.integer(s, "melee-kill-bonus", 80, 0, 100_000);
             repair = cfg.integer(s, "repair", 10, 0, 100_000);
             repairCapPerWindow = cfg.integer(s, "repair-cap-per-window", 50, 0, 1_000_000);
+        }
+    }
+
+    public static final class PowerUps {
+        public final boolean enabled;
+        public final double dropChance;
+        public final int maxPerRound, lifetimeSeconds, doublePointsSeconds, nukePoints;
+        public final Map<String, Integer> weights;
+
+        PowerUps(ConfigurationSection s, Cfg cfg) {
+            enabled = s == null || s.getBoolean("enabled", true);
+            dropChance = cfg.number(s, "drop-chance", 0.03, 0, 1);
+            maxPerRound = cfg.integer(s, "max-per-round", 4, 0, 1000);
+            lifetimeSeconds = cfg.integer(s, "lifetime-seconds", 30, 5, 600);
+            doublePointsSeconds = cfg.integer(s, "double-points-seconds", 30, 1, 600);
+            nukePoints = cfg.integer(s, "nuke-points", 400, 0, 1_000_000);
+            Map<String, Integer> w = new HashMap<>();
+            ConfigurationSection ws = s == null ? null : s.getConfigurationSection("weights");
+            for (String k : List.of("max-ammo", "nuke", "double-points")) {
+                w.put(k, ws == null ? 1 : cfg.integer(ws, k, 1, 0, 1000));
+            }
+            weights = Collections.unmodifiableMap(w);
         }
     }
 

@@ -59,6 +59,9 @@ public final class Game {
     private final ZombieManager zombies;
     private final RoundManager rounds;
     private final BarricadeManager barricades;
+    private final WallBuyManager wallBuys;
+    private final MysteryBoxManager box;
+    private final PowerUpManager powerUps;
     private final Hud hud = new Hud();
 
     private State state = State.LOBBY;
@@ -81,9 +84,15 @@ public final class Game {
         this.zombies = new ZombieManager(plugin, this, rng);
         this.rounds = new RoundManager(this, s.rounds);
         this.barricades = new BarricadeManager(this, s);
+        this.wallBuys = new WallBuyManager(plugin, this);
+        this.box = new MysteryBoxManager(plugin, this, rng);
+        this.powerUps = new PowerUpManager(plugin, this, rng);
     }
 
     void open() {
+        Displays.purge(plugin.keys(), arena.world, arena.bounds.clone().expand(4));
+        wallBuys.spawnDisplays();
+        box.spawnDisplays();
         loop = Bukkit.getScheduler().runTaskTimer(plugin, this::tickLoop, 1L, 1L);
     }
 
@@ -221,6 +230,7 @@ public final class Game {
         p.setFireTicks(0);
         p.setFallDistance(0);
         gp.alive = true;
+        gp.bowie = false;
     }
 
     /**
@@ -289,6 +299,8 @@ public final class Game {
             if (requeue > 0) rounds.requeue(requeue);
         }
         barricades.tick();
+        box.tick();
+        powerUps.tick();
         if (tick % 20 == 0) keepInBounds();
     }
 
@@ -324,6 +336,7 @@ public final class Game {
 
     void onRoundStart(int r) {
         for (Barricade b : arena.barricades) b.resetRoundCaps();
+        powerUps.onRoundStart();
         arena.world.setTime(fr.cleangang.zombies.map.ArenaWorld.NIGHT);
         if (r > 1 && s.respawnNextRound) respawnDead();
         Title title = Title.title(
@@ -397,6 +410,7 @@ public final class Game {
         if (d.lastHitMelee) pts += s.points.meleeKillBonus;
         economy.reward(gp, pts);
         gp.kills++;
+        powerUps.onZombieKilled(z.getLocation());
     }
 
     /** Coup fatal reçu : le joueur tombe (la réanimation arrive à l'étape 3). */
@@ -405,6 +419,7 @@ public final class Game {
         if (gp == null || !gp.alive || state != State.RUNNING) return;
         gp.alive = false;
         gp.downs++;
+        gp.bowie = false;
         gp.cancelReload();
         Location at = p.getLocation();
         s.sound("down").play(at, SoundCategory.PLAYERS);
@@ -439,6 +454,39 @@ public final class Game {
                 Placeholder.unparsed("player", p.getName()), Placeholder.unparsed("door", door.def.name()));
     }
 
+    /**
+     * Clic droit d'un joueur vivant : porte, arme murale ou boîte visée.
+     *
+     * @return true si le clic a servi à une interaction (dans ce cas, pas de tir)
+     */
+    public boolean tryInteract(Player p, Block clicked) {
+        GamePlayer gp = player(p);
+        if (gp == null || !gp.alive) return false;
+        Block target = clicked != null ? clicked : p.getTargetBlockExact(4);
+        if (target == null) return false;
+        boolean interactable = arena.doorAt(target) != null || arena.wallBuyAt(target) != null || arena.isBox(target);
+        if (!interactable) return false;
+        int now = Bukkit.getCurrentTick();
+        if (now < gp.nextInteractTick) return true; // clic maintenu : ni achat répété, ni tir
+        gp.nextInteractTick = now + 15;
+        DoorRuntime door = arena.doorAt(target);
+        if (door != null && !door.isOpen()) {
+            tryOpenDoor(p, door);
+            return true;
+        }
+        if (state != State.RUNNING) return false;
+        var wall = arena.wallBuyAt(target);
+        if (wall != null) {
+            wallBuys.buy(p, gp, wall);
+            return true;
+        }
+        if (arena.isBox(target)) {
+            box.use(p, gp);
+            return true;
+        }
+        return false;
+    }
+
     // ── Fin de partie ────────────────────────────────────────────
 
     void gameOver() {
@@ -446,6 +494,7 @@ public final class Game {
         state = State.ENDING;
         endTicks = END_SCREEN_TICKS;
         zombies.clearAll();
+        powerUps.clear();
         long duration = System.currentTimeMillis() - startedAt;
         int reached = rounds.round();
 
@@ -485,6 +534,9 @@ public final class Game {
     void close() {
         if (loop != null) loop.cancel();
         zombies.clearAll();
+        powerUps.clear();
+        wallBuys.clear();
+        box.clear();
         state = State.ENDING;
         for (GamePlayer gp : new ArrayList<>(players.values())) {
             Player p = gp.player();
@@ -508,6 +560,8 @@ public final class Game {
             case RUNNING, ENDING -> {
                 lines.add(Msg.mm("<gray>Manche <dark_red><bold>" + Math.max(1, rounds.round())));
                 lines.add(Msg.mm(rounds.inIntermission() ? "<green>Pause" : "<gray>Zombies <white>" + rounds.remaining()));
+                Component x2 = powerUps.hudLine();
+                if (x2 != null) lines.add(x2);
             }
         }
         lines.add(Component.space());
@@ -535,6 +589,11 @@ public final class Game {
         DoorRuntime door = arena.doorAt(target);
         if (door != null && !door.isOpen()) {
             return Msg.mm("<gray>Clic droit : dégager les débris <gold>[<cost>]", Placeholder.unparsed("cost", Msg.formatPoints(door.def.cost())));
+        }
+        if (state == State.RUNNING) {
+            var wall = arena.wallBuyAt(target);
+            if (wall != null) return wallBuys.hint(p, wall);
+            if (arena.isBox(target)) return box.hint(p);
         }
         Barricade near = barricades.repairableNear(p);
         if (near != null) return Msg.mm("<gray>Accroupis-toi pour réparer la fenêtre <white>(" + near.planks() + "/" + near.size() + ")");

@@ -4,8 +4,22 @@ Mode coopératif par manches (1 à 4 joueurs) inspiré du mode Zombies de *World
 fenêtres barricadées, points, portes à débloquer, vagues de plus en plus dures.
 Plugin **Paper 26.3**, aucun mod côté joueur, pack de ressources obligatoire.
 
-> **Version 0.1.0 : étape 1 / 7 — prototype jouable.**
+> **Version 0.2.0 : étape 1 terminée + l'essentiel de l'étape 2.**
 > Une seule carte jouable (Bunker 13). Les trois autres sont visibles dans le menu, marquées « Bientôt ».
+
+## Nouveautés 0.2.0
+
+| Ajout | Détail |
+|---|---|
+| Modèles 3D | Pistolet, M1 Garand, MP40, couteau Bowie et pistolet laser en vrais modèles 3D (pavés), générés par `tools/generate_models.py` et modifiables dans Blockbench |
+| Armes murales | Une par salle du Bunker : **M1 Garand** (salle de départ, 600), **MP40** (salle radio, 1000), **Couteau Bowie** (dépôt, 3000). L'arme est exposée sur le mur avec son prix ; racheter = munitions (moitié prix) |
+| Deux armes max | Comme dans l'original : au-delà, l'arme tenue est remplacée |
+| Couteau Bowie | Remplace le couteau (clic gauche, 18 dégâts au lieu de 5), perdu à la chute |
+| Pistolet laser | Rayon vert avec explosion à l'impact (dégâts de zone). Uniquement dans la **boîte mystère** |
+| Boîte mystère | Salle radio, 950 points : le coffre s'ouvre, les armes défilent, l'arme tirée reste 10 s pour l'acheteur |
+| Bonus | **Munitions max**, **Bombe** (tue tous les zombies, +400 à chacun), **Points x2** (30 s). 3 % de chance par élimination, 4 max par manche, disparaissent après 30 s |
+| Sons | Nouveaux sons originaux : tirs du Garand (avec le « ping » de fin de clip), MP40, laser, boîte, bonus |
+| Mise à jour auto | `weapons.yml` et `maps/*.yml` sont remplacés s'ils sont plus anciens (copie en `.old`) ; les nouveaux réglages sont ajoutés à `config.yml` sans toucher aux tiens |
 
 ---
 
@@ -23,6 +37,7 @@ Plugin **Paper 26.3**, aucun mod côté joueur, pack de ressources obligatoire.
 | Portes | ✅ Débris achetables (750 et 1000 pts), débloquent les fenêtres de la salle |
 | Points | ✅ Touche +10, élimination +50, tête +50, couteau +80, achat atomique (pas de double paiement) |
 | Pistolet de départ | ✅ Tir instantané (hitscan), tirs à la tête, chargeur/réserve, rechargement avec **F**, traverse les planches |
+| Armes murales, boîte mystère, bonus | ✅ Voir « Nouveautés 0.2.0 » |
 | Couteau | ✅ Clic gauche sur un zombie |
 | Chute / défaite | ✅ Coup fatal → spectateur, retour à la manche suivante (en attendant la réanimation), fin quand tout le monde est à terre |
 | Écran de fin | ✅ Manche atteinte, durée, points, éliminations, têtes, chutes + boutons Rejouer / Choisir une carte |
@@ -32,7 +47,7 @@ Plugin **Paper 26.3**, aucun mod côté joueur, pack de ressources obligatoire.
 
 ## Ce qui reste à faire (étapes suivantes)
 
-- **Étape 2** : armes murales, boîte mystère, achat de munitions, HUD avec icônes.
+- **Étape 2 (reste)** : HUD avec icônes, déplacement de la boîte après plusieurs tirages, d'autres armes (fusil à pompe, Kar98k, mitrailleuse…).
 - **Étape 3** : réanimation (à terre → compte à rebours → relevé par un coéquipier), reconnexion en cours de partie.
 - **Étape 4** : perks (4 distributeurs), courant, pièges, téléporteurs, station d'amélioration.
 - **Étape 5** : cartes Sanatorium Sainte-Lucie, Marais de Kurohama, Complexe Titan.
@@ -103,6 +118,9 @@ entrent que par le plugin ; un joueur non admin qui s'y reconnecte hors partie e
 - **Clic droit** : tirer · **F** : recharger · **Clic gauche** : couteau
 - **S'accroupir** près d'une fenêtre abîmée : la réparer
 - **Clic droit** sur des débris : ouvrir la porte (le prix s'affiche en visant)
+- **Clic droit** en visant une arme au mur : l'acheter, ou acheter ses munitions
+- **Clic droit** sur la boîte mystère : tirage, puis de nouveau pour prendre l'arme
+- **Marcher sur un bonus** pour le ramasser (il profite à toute l'équipe)
 
 ---
 
@@ -151,6 +169,19 @@ Le pistolet seul devient vite insuffisant : c'est voulu, les armes murales arriv
 - Les zombies utilisent le modèle vanilla avec une tenue teintée par variante ; les modèles dédiés arrivent à l'étape 6.
 - Le code a été vérifié contre les sources de l'API Paper 26.3 mais n'a pas encore tourné sur un vrai serveur :
   le premier test en jeu peut révéler des réglages à affiner (vitesse des zombies, portée de réparation…).
+
+## Modèles 3D
+
+Les armes sont des assemblages de pavés décrits dans `tools/generate_models.py`. Pour les modifier :
+
+```bash
+pip install pillow
+python3 tools/generate_models.py --preview   # régénère le pack + aperçus dans build/model-previews/
+```
+
+Les fichiers `resourcepack/assets/cgzombies/models/item/*.json` s'ouvrent dans **Blockbench**
+(texture : `weapon_palette.png`). Les positions en main (onglet *Display*) sont réglées à l'estime :
+si une arme est mal placée à l'écran, ajuste-la dans Blockbench, c'est le plus rapide.
 
 ## Ressources
 

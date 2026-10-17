@@ -76,6 +76,30 @@ public final class ArenaBuilder {
         // 5. Décor explicite
         for (MapDefinition.Decor d : def.decor) block(d.x(), d.y(), d.z()).setType(d.block(), false);
 
+        // 6. Armes murales : bloc repère dans le mur, arme exposée juste devant
+        List<WallBuySpot> wallBuys = new ArrayList<>();
+        for (MapDefinition.WallBuy wb : def.wallBuys) {
+            Block wall = block(wb.x(), wb.y(), wb.z());
+            wall.setType(theme.wallBuy(), false);
+            BlockFace f = wb.facing();
+            Location display = wall.getLocation().add(0.5 + f.getModX() * 0.53, 0.5, 0.5 + f.getModZ() * 0.53);
+            display.setDirection(new org.bukkit.util.Vector(f.getModX(), 0, f.getModZ()));
+            wallBuys.add(new WallBuySpot(wb, wall, display));
+        }
+
+        // 7. Boîte mystère
+        BoxSpot box = null;
+        if (def.mysteryBox != null) {
+            MapDefinition.MysteryBox mb = def.mysteryBox;
+            Block chest = block(mb.x(), mb.y(), mb.z());
+            BlockData data = Material.CHEST.createBlockData();
+            if (data instanceof org.bukkit.block.data.type.Chest c) c.setFacing(mb.facing());
+            chest.setBlockData(data, false);
+            Location top = chest.getLocation().add(0.5, 1.0, 0.5);
+            top.setDirection(new org.bukkit.util.Vector(mb.facing().getModX(), 0, mb.facing().getModZ()));
+            box = new BoxSpot(mb, chest, top);
+        }
+
         List<Location> spawns = new ArrayList<>();
         for (MapDefinition.Spawn s : def.playerSpawns) {
             spawns.add(new Location(world, ox + s.x(), oy + s.y(), oz + s.z(), s.yaw(), 0f));
@@ -83,7 +107,7 @@ public final class ArenaBuilder {
 
         BoundingBox bounds = new BoundingBox(ox + extent.minX(), oy + extent.minY(), oz + extent.minZ(),
                 ox + extent.maxX() + 1, oy + extent.maxY() + 1, oz + extent.maxZ() + 1);
-        return new BuiltArena(def, world, seed, barricades, doors, spawns, bounds, barricadeCells, doorCells);
+        return new BuiltArena(def, world, seed, barricades, doors, spawns, bounds, barricadeCells, doorCells, wallBuys, box);
     }
 
     /** Boîte englobant salles et enclos. */

@@ -58,7 +58,15 @@ public final class MapDefinition {
     }
 
     public record Theme(List<Material> floor, List<Material> wall, List<Material> ceiling, List<Material> penWall,
-                        Material plank, Material door, int lightSpacing, double cobwebChance) {
+                        Material plank, Material door, Material wallBuy, int lightSpacing, double cobwebChance) {
+    }
+
+    /** Arme murale : bloc du mur (pos) et direction vers l'intérieur de la salle. */
+    public record WallBuy(String id, String weapon, String room, int x, int y, int z, BlockFace facing) {
+    }
+
+    /** Boîte mystère : bloc du coffre, côté de l'ouverture, prix. */
+    public record MysteryBox(String room, int x, int y, int z, BlockFace facing, int cost) {
     }
 
     public final String id;
@@ -75,6 +83,9 @@ public final class MapDefinition {
     public final List<Door> doors;
     public final List<Spawn> playerSpawns;
     public final List<Decor> decor;
+    public final List<WallBuy> wallBuys;
+    /** null si la carte n'a pas de boîte. */
+    public final MysteryBox mysteryBox;
 
     private MapDefinition(String fileName, YamlConfiguration y, Cfg cfg) {
         String fallbackId = fileName.endsWith(".yml") ? fileName.substring(0, fileName.length() - 4) : fileName;
@@ -95,6 +106,7 @@ public final class MapDefinition {
                 cfg.materials(t, "pen-wall", Material.MUD_BRICKS),
                 cfg.material(t, "plank", Material.OAK_PLANKS),
                 cfg.material(t, "door", Material.DARK_OAK_LOG),
+                cfg.material(t, "wall-buy", Material.POLISHED_BLACKSTONE),
                 t == null ? 6 : Math.max(2, t.getInt("light-spacing", 6)),
                 t == null ? 0.5 : t.getDouble("cobweb-chance", 0.5));
 
@@ -165,6 +177,27 @@ public final class MapDefinition {
         }
         decor = Collections.unmodifiableList(dec);
 
+        List<WallBuy> wb = new ArrayList<>();
+        i = 0;
+        for (Map<?, ?> m : y.getMapList("wall-buys")) {
+            String where = "wall-buys[" + i++ + "]";
+            int[] p = cfg.vec3(asList(m.get("pos")), where + ".pos");
+            BlockFace face = cfg.horizontalFace(m.get("facing") == null ? null : String.valueOf(m.get("facing")), where + ".facing");
+            wb.add(new WallBuy(String.valueOf(m.get("id")), String.valueOf(m.get("weapon")), String.valueOf(m.get("room")),
+                    p[0], p[1], p[2], face));
+        }
+        wallBuys = Collections.unmodifiableList(wb);
+
+        ConfigurationSection mb = y.getConfigurationSection("mystery-box");
+        if (mb != null) {
+            int[] p = cfg.vec3(mb, "pos");
+            mysteryBox = new MysteryBox(mb.getString("room", ""), p[0], p[1], p[2],
+                    cfg.horizontalFace(mb.getString("facing"), "mystery-box.facing"),
+                    cfg.integer(mb, "cost", 950, 0, 1_000_000));
+        } else {
+            mysteryBox = null;
+        }
+
         if (playable) validateLayout(cfg);
     }
 
@@ -197,6 +230,12 @@ public final class MapDefinition {
         for (Door d : doors) {
             if (d.rooms().size() != 2) cfg.error("doors." + d.id(), "rooms doit lister exactement 2 salles");
             for (String r : d.rooms()) if (!rooms.containsKey(r)) cfg.error("doors." + d.id(), "salle inconnue « " + r + " »");
+        }
+        for (WallBuy w : wallBuys) {
+            if (!rooms.containsKey(w.room())) cfg.error("wall-buys." + w.id(), "salle inconnue « " + w.room() + " »");
+        }
+        if (mysteryBox != null && !rooms.containsKey(mysteryBox.room())) {
+            cfg.error("mystery-box.room", "salle inconnue « " + mysteryBox.room() + " »");
         }
         boolean startHasWindow = windows.stream().anyMatch(w -> rooms.containsKey(w.room()) && rooms.get(w.room()).starting());
         if (!startHasWindow) cfg.error("windows", "aucune fenêtre dans la salle de départ : les zombies ne pourraient pas entrer");

@@ -23,6 +23,10 @@ public final class GamePlayer {
     // Combat
     public int nextShotTick;
     public int nextMeleeTick;
+    /** Couteau Bowie acheté (perdu à la chute). */
+    public boolean bowie;
+    /** Anti-répétition des achats quand le clic droit reste enfoncé. */
+    int nextInteractTick;
     BukkitTask reloadTask;
     int reloadSlot = -1;
 

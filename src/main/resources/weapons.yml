@@ -1,21 +1,33 @@
-# Armes. Étape 1 : seul le pistolet de départ est utilisé.
-# Les armes murales et la boîte mystère arrivent à l'étape 2 (même format).
+# Armes du mode Zombies.
 #
+# type              GUN (balle instantanée) · RAYGUN (rayon à éclaboussure) · MELEE (remplace le couteau)
+# cost              prix au mur (0 = pas vendue au mur)
+# ammo-cost         prix des munitions au mur quand on possède déjà l'arme (défaut : moitié du prix)
+# box-weight        poids dans la boîte mystère (0 = jamais tirée). Plus c'est haut, plus c'est fréquent.
 # damage            dégâts par balle (un zombie de manche 1 a 8 PV)
 # headshot-multiplier
-# fire-delay-ticks  délai mini entre deux tirs
-# magazine/reserve  chargeur / munitions de réserve
+# fire-delay-ticks  délai mini entre deux tirs. Les armes automatiques tirent tant que le clic droit est maintenu
+#                   (Minecraft envoie un clic toutes les 4 ticks environ : en dessous de 4, ça ne va pas plus vite).
+# magazine/reserve  chargeur / munitions de réserve (Munitions max remplit la réserve)
 # reload-ticks      durée du rechargement (touche F)
 # spread            dispersion (0 = parfait)
-# pellets           projectiles par tir (fusil à pompe)
+# pellets           projectiles par tir
+# splash-radius / splash-damage   RAYGUN : rayon et dégâts de l'explosion à l'impact
+# melee-damage      MELEE : dégâts du couteau une fois l'arme achetée
+# Version du fichier : si le plugin embarque une version plus récente, l'ancien fichier est
+# sauvegardé en weapons.yml.old puis remplacé au démarrage.
+file-version: 2
+
 weapons:
   pistol:
+    type: GUN
     name: "<gray>Pistolet de service"
     lore:
       - "<dark_gray>Arme de départ"
       - "<dark_gray>Clic droit : tirer · F : recharger"
     material: IRON_HORSE_ARMOR
     item-model: "cgzombies:pistol"
+    box-weight: 0
     damage: 4.0
     headshot-multiplier: 2.0
     fire-delay-ticks: 5
@@ -24,8 +36,93 @@ weapons:
     reload-ticks: 32
     range: 48
     spread: 0.012
-    pellets: 1
     sounds:
       fire: { sound: "cgzombies:weapon.pistol.fire", volume: 1.0, pitch: 1.0 }
       reload: { sound: "cgzombies:weapon.reload", volume: 0.9, pitch: 1.0 }
       empty: { sound: "cgzombies:weapon.empty", volume: 0.9, pitch: 1.0 }
+
+  garand:
+    type: GUN
+    name: "<white>M1 Garand"
+    lore:
+      - "<dark_gray>Fusil semi-automatique"
+      - "<dark_gray>Gros dégâts, idéal pour les tirs à la tête"
+    material: IRON_HORSE_ARMOR
+    item-model: "cgzombies:garand"
+    cost: 600
+    ammo-cost: 300
+    box-weight: 12
+    damage: 9.0
+    headshot-multiplier: 2.5
+    fire-delay-ticks: 6
+    magazine: 8
+    reserve: 128
+    reload-ticks: 36
+    range: 64
+    spread: 0.004
+    sounds:
+      fire: { sound: "cgzombies:weapon.garand.fire", volume: 1.0, pitch: 1.0 }
+      reload: { sound: "cgzombies:weapon.reload", volume: 0.9, pitch: 0.9 }
+      empty: { sound: "cgzombies:weapon.empty", volume: 0.9, pitch: 1.0 }
+      last-shot: { sound: "cgzombies:weapon.garand.ping", volume: 1.0, pitch: 1.0 }
+
+  mp40:
+    type: GUN
+    name: "<white>MP40"
+    lore:
+      - "<dark_gray>Pistolet-mitrailleur automatique"
+      - "<dark_gray>Maintiens le clic droit"
+    material: IRON_HORSE_ARMOR
+    item-model: "cgzombies:mp40"
+    cost: 1000
+    ammo-cost: 500
+    box-weight: 14
+    damage: 4.0
+    headshot-multiplier: 2.0
+    fire-delay-ticks: 3
+    magazine: 32
+    reserve: 192
+    reload-ticks: 40
+    range: 40
+    spread: 0.03
+    sounds:
+      fire: { sound: "cgzombies:weapon.mp40.fire", volume: 0.9, pitch: 1.0 }
+      reload: { sound: "cgzombies:weapon.reload", volume: 0.9, pitch: 1.1 }
+      empty: { sound: "cgzombies:weapon.empty", volume: 0.9, pitch: 1.0 }
+
+  bowie:
+    type: MELEE
+    name: "<gold>Couteau Bowie"
+    lore:
+      - "<dark_gray>Remplace ton couteau : clic gauche"
+      - "<dark_gray>Tue en un coup pendant les premières manches"
+    material: IRON_HORSE_ARMOR
+    item-model: "cgzombies:bowie"
+    cost: 3000
+    box-weight: 0
+    melee-damage: 18.0
+
+  raygun:
+    type: RAYGUN
+    name: "<green><bold>Pistolet laser"
+    lore:
+      - "<dark_gray>Arme expérimentale de la boîte mystère"
+      - "<dark_gray>Rayon explosif · attention à l'éclaboussure"
+    material: IRON_HORSE_ARMOR
+    item-model: "cgzombies:raygun"
+    cost: 0
+    box-weight: 4
+    damage: 30.0
+    headshot-multiplier: 1.0
+    fire-delay-ticks: 7
+    magazine: 20
+    reserve: 160
+    reload-ticks: 40
+    range: 64
+    spread: 0.0
+    splash-radius: 2.5
+    splash-damage: 18.0
+    sounds:
+      fire: { sound: "cgzombies:weapon.raygun.fire", volume: 1.0, pitch: 1.0 }
+      reload: { sound: "cgzombies:weapon.reload", volume: 0.9, pitch: 1.3 }
+      empty: { sound: "cgzombies:weapon.empty", volume: 0.9, pitch: 1.2 }

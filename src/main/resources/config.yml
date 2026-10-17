@@ -122,6 +122,24 @@ items:
   # Utilise les modèles 3D du pack (item_model). Mets false pour tester sans pack.
   custom-models: true
 
+# Bonus lâchés par les zombies tués par un joueur.
+power-ups:
+  enabled: true
+  # Probabilité par élimination
+  drop-chance: 0.03
+  # Bonus maximum par manche
+  max-per-round: 4
+  # Durée avant disparition (clignote les 6 dernières secondes)
+  lifetime-seconds: 30
+  double-points-seconds: 30
+  # Points donnés à chaque joueur par la Bombe
+  nuke-points: 400
+  # Poids relatifs de chaque bonus (0 = désactivé)
+  weights:
+    max-ammo: 1
+    nuke: 1
+    double-points: 1
+
 resource-pack:
   # URL publique du zip (ton NAS, GitHub Releases...). Vide = pas de pack (mode dev, avertissement en console).
   url: ""
@@ -145,3 +163,11 @@ sounds:
   hitmarker: { sound: "cgzombies:ui.hitmarker", volume: 0.7, pitch: 1.0 }
   melee: { sound: "minecraft:entity.player.attack.sweep", volume: 0.8, pitch: 1.3 }
   down: { sound: "minecraft:entity.player.hurt", volume: 1.0, pitch: 0.6 }
+  raygun-impact: { sound: "cgzombies:weapon.raygun.impact", volume: 1.0, pitch: 1.0 }
+  box-open: { sound: "minecraft:block.chest.open", volume: 1.0, pitch: 0.8 }
+  box-roll: { sound: "cgzombies:box.roll", volume: 0.6, pitch: 1.0 }
+  box-reward: { sound: "cgzombies:box.reward", volume: 1.0, pitch: 1.0 }
+  powerup-spawn: { sound: "cgzombies:powerup.spawn", volume: 1.0, pitch: 1.0 }
+  powerup-max-ammo: { sound: "cgzombies:powerup.max_ammo", volume: 1.0, pitch: 1.0 }
+  powerup-nuke: { sound: "cgzombies:powerup.nuke", volume: 1.0, pitch: 1.0 }
+  powerup-double-points: { sound: "cgzombies:powerup.double_points", volume: 1.0, pitch: 1.0 }

@@ -3,6 +3,8 @@
 #   y = min.y → sol, y = max.y → plafond, bords en x/z → murs.
 # Deux salles voisines partagent leur mur (même coordonnée).
 id: bunker
+# Version du fichier (remplacé automatiquement par une version plus récente du plugin, ancien gardé en .old)
+file-version: 2
 order: 1
 display-name: "Bunker 13"
 icon: IRON_TRAPDOOR
@@ -21,6 +23,8 @@ theme:
   pen-wall: [MUD_BRICKS, PACKED_MUD]
   plank: OAK_PLANKS
   door: DARK_OAK_LOG
+  # Bloc du mur derrière une arme murale (repère visuel)
+  wall-buy: POLISHED_BLACKSTONE
   light-spacing: 6
   cobweb-chance: 0.5
 
@@ -55,6 +59,15 @@ windows:
 doors:
   - { id: d_radio, name: "Salle radio", cost: 750, min: [16, 1, 5], max: [16, 3, 7], rooms: [start, radio] }
   - { id: d_depot, name: "Dépôt", cost: 1000, min: [7, 1, 12], max: [9, 3, 12], rooms: [start, depot] }
+
+# Armes murales : une par salle. pos = bloc du mur, facing = direction vers l'intérieur de la salle.
+wall-buys:
+  - { id: wb_garand, weapon: garand, room: start, pos: [13, 2, 12], facing: NORTH }
+  - { id: wb_mp40, weapon: mp40, room: radio, pos: [25, 2, 0], facing: SOUTH }
+  - { id: wb_bowie, weapon: bowie, room: depot, pos: [16, 2, 17], facing: WEST }
+
+# Boîte mystère (seul moyen d'obtenir le pistolet laser). facing = côté de l'ouverture.
+mystery-box: { room: radio, pos: [22, 1, 11], facing: NORTH, cost: 950 }
 
 # Points de départ des joueurs (x, y, z, orientation)
 player-spawns:

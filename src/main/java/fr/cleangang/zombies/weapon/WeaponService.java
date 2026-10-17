@@ -37,6 +37,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class WeaponService {
 
     private static final Particle.DustOptions TRAIL = new Particle.DustOptions(Color.fromRGB(255, 225, 150), 0.45f);
+    private static final Particle.DustOptions LASER = new Particle.DustOptions(Color.fromRGB(90, 255, 120), 0.9f);
+    private static final Particle.DustOptions LASER_BURST = new Particle.DustOptions(Color.fromRGB(150, 255, 160), 1.4f);
     private static final Particle.DustOptions BLOOD = new Particle.DustOptions(Color.fromRGB(120, 10, 10), 1.2f);
 
     private final ZombiesPlugin plugin;
@@ -101,8 +103,8 @@ public final class WeaponService {
         WeaponState st = read(p.getInventory().getItem(slot));
         if (st == null) return;
         int now = Bukkit.getCurrentTick();
-        if (now < gp.nextShotTick || gp.reloading()) return;
         WeaponDefinition def = st.def();
+        if (!def.isFirearm() || now < gp.nextShotTick || gp.reloading()) return;
 
         if (st.magazine() <= 0) {
             gp.nextShotTick = now + 6;
@@ -119,7 +121,10 @@ public final class WeaponService {
             Vector dir = spread(eye.getDirection(), def.spread());
             fireRay(game, p, eye, dir, def);
         }
-        if (st.magazine() - 1 == 0 && st.reserve() > 0) startReload(game, gp, p);
+        if (st.magazine() - 1 == 0) {
+            def.lastShotSound().play(p.getLocation(), SoundCategory.PLAYERS);
+            if (st.reserve() > 0) startReload(game, gp, p);
+        }
     }
 
     private void fireRay(Game game, Player shooter, Location eye, Vector dir, WeaponDefinition def) {
@@ -128,6 +133,10 @@ public final class WeaponService {
         RayTraceResult ent = w.rayTraceEntities(eye, dir, Math.min(def.range(), blockDist), 0.15,
                 e -> e instanceof Zombie z && game.zombies().isOurs(z) && !z.isDead());
         double hitDist = blockDist;
+        if (def.type() == WeaponDefinition.Type.RAYGUN) {
+            fireRaygun(game, shooter, eye, dir, def, blockDist, ent);
+            return;
+        }
         if (ent != null && ent.getHitEntity() instanceof Zombie z) {
             Vector hit = ent.getHitPosition();
             hitDist = hit.distance(eye.toVector());
@@ -145,6 +154,40 @@ public final class WeaponService {
             w.spawnParticle(Particle.DUST, cur, 1, 0, 0, 0, 0, TRAIL);
             cur.add(step);
         }
+    }
+
+    /** Rayon laser : touche directe + explosion qui blesse tous les zombies autour de l'impact. */
+    private void fireRaygun(Game game, Player shooter, Location eye, Vector dir, WeaponDefinition def,
+                            double blockDist, RayTraceResult ent) {
+        World w = eye.getWorld();
+        Zombie direct = ent != null && ent.getHitEntity() instanceof Zombie z ? z : null;
+        Vector impact = direct != null ? ent.getHitPosition() : eye.toVector().add(dir.clone().multiply(Math.min(blockDist, def.range())));
+        double len = impact.distance(eye.toVector());
+
+        Vector step = dir.clone().multiply(0.35);
+        Location cur = eye.clone().add(dir.clone().multiply(0.8));
+        for (double d = 0.8; d < len; d += 0.35) {
+            w.spawnParticle(Particle.DUST, cur, 2, 0.03, 0.03, 0.03, 0, LASER);
+            cur.add(step);
+        }
+        Location boom = impact.toLocation(w);
+        w.spawnParticle(Particle.DUST, boom, 40, def.splashRadius() / 3, def.splashRadius() / 3, def.splashRadius() / 3, 0, LASER_BURST);
+        w.spawnParticle(Particle.FLASH, boom, 1, 0, 0, 0, 0, Color.fromRGB(120, 255, 140));
+        plugin.settings().sound("raygun-impact").play(boom, SoundCategory.PLAYERS);
+
+        boolean hitSomething = false;
+        if (direct != null) {
+            game.damageZombie(shooter, direct, def.damage(), false, false);
+            hitSomething = true;
+        }
+        double r2 = def.splashRadius() * def.splashRadius();
+        for (Zombie z : boom.getNearbyEntitiesByType(Zombie.class, def.splashRadius())) {
+            if (z == direct || z.isDead() || !game.zombies().isOurs(z)) continue;
+            if (z.getLocation().add(0, 1, 0).distanceSquared(boom) > r2 + 1) continue;
+            game.damageZombie(shooter, z, def.splashDamage(), false, false);
+            hitSomething = true;
+        }
+        if (hitSomething) plugin.settings().sound("hitmarker").playTo(shooter);
     }
 
     /** Distance jusqu'au premier bloc qui arrête la balle (les planches peuvent être traversées). */
@@ -204,10 +247,79 @@ public final class WeaponService {
         if (fill > 0) writeAmmo(p, slot, st.magazine() + fill, st.reserve() - fill);
     }
 
+    // ── Inventaire d'armes ───────────────────────────────────────
+
+    /** Cases des deux armes à feu ; la case 2 accueille le couteau Bowie. */
+    public static final int[] GUN_SLOTS = {0, 1};
+    public static final int MELEE_SLOT = 2;
+
+    /** Case contenant cette arme, ou -1. */
+    public int slotOf(Player p, String weaponId) {
+        for (int slot : new int[]{0, 1, MELEE_SLOT}) {
+            WeaponState st = read(p.getInventory().getItem(slot));
+            if (st != null && st.def().id().equals(weaponId)) return slot;
+        }
+        return -1;
+    }
+
+    /**
+     * Donne une arme. Deux armes à feu maximum : si les deux cases sont prises, l'arme tenue
+     * (ou la seconde) est remplacée, comme dans le mode d'origine.
+     */
+    public void give(Player p, GamePlayer gp, WeaponDefinition def) {
+        if (def.type() == WeaponDefinition.Type.MELEE) {
+            gp.bowie = true;
+            p.getInventory().setItem(MELEE_SLOT, createItem(def));
+            return;
+        }
+        int slot = -1;
+        for (int s : GUN_SLOTS) {
+            if (read(p.getInventory().getItem(s)) == null) {
+                slot = s;
+                break;
+            }
+        }
+        if (slot < 0) {
+            int held = p.getInventory().getHeldItemSlot();
+            slot = (held == 0 || held == 1) ? held : 1;
+        }
+        if (gp.reloadSlot() == slot) gp.cancelReload();
+        p.getInventory().setItem(slot, createItem(def));
+        p.getInventory().setHeldItemSlot(slot);
+    }
+
+    /** Remplit chargeur et réserve de l'arme dans cette case. Renvoie false si elle était déjà pleine. */
+    public boolean refill(Player p, int slot) {
+        WeaponState st = read(p.getInventory().getItem(slot));
+        if (st == null || !st.def().isFirearm()) return false;
+        if (st.magazine() >= st.def().magazine() && st.reserve() >= st.def().reserve()) return false;
+        writeAmmo(p, slot, st.def().magazine(), st.def().reserve());
+        return true;
+    }
+
+    /** Munitions max : réserve pleine pour toutes les armes à feu du joueur. */
+    public void refillReserves(Player p) {
+        for (int slot : GUN_SLOTS) {
+            WeaponState st = read(p.getInventory().getItem(slot));
+            if (st != null && st.def().isFirearm()) writeAmmo(p, slot, st.magazine(), st.def().reserve());
+        }
+    }
+
+    /** Dégâts du couteau (amélioré par le Bowie). */
+    public double meleeDamage(GamePlayer gp) {
+        if (gp.bowie) {
+            for (WeaponDefinition d : plugin.weapons().values()) {
+                if (d.type() == WeaponDefinition.Type.MELEE) return d.meleeDamage();
+            }
+        }
+        return plugin.settings().meleeDamage;
+    }
+
     /** Ligne de munitions pour la barre d'action. */
     public Component ammoLine(GamePlayer gp, Player p) {
         WeaponState st = read(p.getInventory().getItemInMainHand());
         if (st == null) return Component.empty();
+        if (!st.def().isFirearm()) return Msg.mm("<gold>Couteau Bowie <dark_gray>· <gray>clic gauche");
         if (gp.reloading()) return Msg.mm("<yellow>Rechargement…");
         String magColor = st.magazine() == 0 ? "red" : st.magazine() <= Math.max(1, st.def().magazine() / 4) ? "gold" : "white";
         return Msg.mm("<" + magColor + "><bold>" + st.magazine() + "</bold></" + magColor + "> <dark_gray>/</dark_gray> <gray>" + st.reserve());

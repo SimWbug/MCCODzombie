@@ -11,6 +11,7 @@ import fr.cleangang.zombies.map.MapRegistry;
 import fr.cleangang.zombies.pack.ResourcePackService;
 import fr.cleangang.zombies.weapon.WeaponService;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -39,8 +40,8 @@ public final class ZombiesPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        saveIfMissing("weapons.yml");
-        for (String m : BUNDLED_MAPS) saveIfMissing("maps/" + m + ".yml");
+        updateBundled("weapons.yml");
+        for (String m : BUNDLED_MAPS) updateBundled("maps/" + m + ".yml");
 
         keys = new Keys(this);
         snapshots = new SnapshotStore(new File(getDataFolder(), "snapshots"), getLogger());
@@ -86,11 +87,21 @@ public final class ZombiesPlugin extends JavaPlugin {
     public List<String> reloadData() {
         List<String> errors = new ArrayList<>();
         reloadConfig();
+        // Ajoute à config.yml les réglages apparus dans les nouvelles versions, sans toucher aux valeurs existantes
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         PluginSettings newSettings = PluginSettings.load(getConfig(), errors);
         Map<String, WeaponDefinition> newWeapons = WeaponDefinition.loadAll(new File(getDataFolder(), "weapons.yml"), errors);
         MapRegistry newMaps = MapRegistry.load(new File(getDataFolder(), "maps"), errors);
         if (!newWeapons.containsKey(newSettings.startingWeapon)) {
             errors.add("config.yml → player.starting-weapon : arme « " + newSettings.startingWeapon + " » absente de weapons.yml");
+        }
+        for (var map : newMaps.all()) {
+            for (var wb : map.wallBuys) {
+                if (!newWeapons.containsKey(wb.weapon())) {
+                    errors.add("maps/" + map.id + ".yml → wall-buys." + wb.id() + " : arme « " + wb.weapon() + " » absente de weapons.yml");
+                }
+            }
         }
         if (newMaps.get(newSettings.defaultMap) == null) {
             errors.add("config.yml → lobby.default-map : carte « " + newSettings.defaultMap + " » introuvable");
@@ -109,8 +120,34 @@ public final class ZombiesPlugin extends JavaPlugin {
         return errors;
     }
 
-    private void saveIfMissing(String path) {
-        if (!new File(getDataFolder(), path).exists()) saveResource(path, false);
+    /**
+     * Copie un fichier embarqué s'il manque, ou le remplace si le plugin en contient une version plus
+     * récente (clé file-version). L'ancien fichier est conservé en .old.
+     */
+    private void updateBundled(String path) {
+        File target = new File(getDataFolder(), path);
+        if (!target.exists()) {
+            saveResource(path, false);
+            return;
+        }
+        int current = YamlConfiguration.loadConfiguration(target).getInt("file-version", 1);
+        int bundled;
+        try (var in = getResource(path)) {
+            if (in == null) return;
+            bundled = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8))
+                    .getInt("file-version", 1);
+        } catch (java.io.IOException e) {
+            return;
+        }
+        if (bundled <= current) return;
+        File backup = new File(target.getPath() + ".old");
+        if (backup.exists() && !backup.delete()) getLogger().warning("Impossible de remplacer " + backup);
+        if (!target.renameTo(backup)) {
+            getLogger().warning("Impossible de sauvegarder " + path + " : mise à jour ignorée");
+            return;
+        }
+        saveResource(path, false);
+        getLogger().info(path + " mis à jour (v" + current + " → v" + bundled + "), ancien fichier : " + backup.getName());
     }
 
     // ── Accès ────────────────────────────────────────────────────

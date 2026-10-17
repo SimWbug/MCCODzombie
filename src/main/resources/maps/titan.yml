@@ -1,6 +1,7 @@
 # Carte 4 — Complexe Titan (laboratoire, usine, téléporteurs, station d'amélioration)
 # Plan modulaire prévu pour l'étape 5. Visible dans le menu, pas encore jouable.
 id: titan
+file-version: 2
 order: 4
 display-name: "Complexe Titan"
 icon: END_PORTAL_FRAME

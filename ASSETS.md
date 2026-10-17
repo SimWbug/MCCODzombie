@@ -6,9 +6,12 @@ d'utilisation et de modification pour le serveur.
 
 | Fichier | Type | Origine |
 |---|---|---|
-| `assets/cgzombies/textures/item/pistol.png` | Texture 32×32 | Pixel art original |
-| `assets/cgzombies/items/pistol.json` | Définition d'objet | Original |
-| `assets/cgzombies/models/item/pistol.json` | Modèle | Original (parent vanilla `item/handheld`) |
+| `assets/cgzombies/textures/item/weapon_palette.png` | Texture palette 32×32 | Originale (générée) |
+| `assets/cgzombies/models/item/{pistol,garand,mp40,bowie,raygun}.json` | Modèles 3D | Originaux (`tools/generate_models.py`) |
+| `assets/cgzombies/textures/item/powerup_*.png` | Icônes des bonus | Pixel art original (généré) |
+| `assets/cgzombies/items/*.json` | Définitions d'objets | Originales |
+| `assets/cgzombies/sounds/weapon/{garand_fire,garand_ping,mp40_fire,raygun_fire,raygun_impact}.ogg` | Sons | Synthèse |
+| `assets/cgzombies/sounds/box/*.ogg`, `sounds/powerup/*.ogg` | Sons | Synthèse |
 | `assets/cgzombies/sounds/weapon/pistol_fire.ogg` | Son | Synthèse (bruit filtré + grave) |
 | `assets/cgzombies/sounds/weapon/reload.ogg` | Son | Synthèse (clics métalliques) |
 | `assets/cgzombies/sounds/weapon/empty.ogg` | Son | Synthèse |

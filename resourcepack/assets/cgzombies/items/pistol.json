@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "cgzombies:item/pistol"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "cgzombies:item/pistol"
+ }
 }

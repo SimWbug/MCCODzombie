@@ -3,7 +3,6 @@ package fr.cleangang.zombies.listener;
 import fr.cleangang.zombies.ZombiesPlugin;
 import fr.cleangang.zombies.game.Game;
 import fr.cleangang.zombies.game.GamePlayer;
-import fr.cleangang.zombies.map.DoorRuntime;
 import fr.cleangang.zombies.util.Msg;
 import fr.cleangang.zombies.zombie.ZombieManager;
 import org.bukkit.Bukkit;
@@ -128,7 +127,7 @@ public final class GameListener implements Listener {
             if (now < gp.nextMeleeTick) return;
             gp.nextMeleeTick = now + plugin.settings().meleeCooldownTicks;
             plugin.settings().sound("melee").play(attacker.getLocation(), SoundCategory.PLAYERS);
-            g.damageZombie(attacker, z, plugin.settings().meleeDamage, false, true);
+            g.damageZombie(attacker, z, plugin.weaponService().meleeDamage(gp), false, true);
         }
     }
 
@@ -186,12 +185,8 @@ public final class GameListener implements Listener {
         GamePlayer gp = g.player(p);
         if (gp == null || !gp.alive()) return;
 
-        DoorRuntime door = g.arena().doorAt(e.getClickedBlock());
-        if (door == null && a == Action.RIGHT_CLICK_AIR) door = g.arena().doorAt(p.getTargetBlockExact(4));
-        if (door != null && !door.isOpen()) {
-            g.tryOpenDoor(p, door);
-            return;
-        }
+        // Porte, arme murale ou boîte visée : l'interaction passe avant le tir
+        if (g.tryInteract(p, e.getClickedBlock())) return;
         if (g.state() == Game.State.RUNNING) plugin.weaponService().tryShoot(g, gp, p);
     }
 

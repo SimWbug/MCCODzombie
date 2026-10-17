@@ -7,6 +7,17 @@ package fr.cleangang.zombies.game;
  */
 public final class EconomyManager {
 
+    /** 2 pendant le bonus Points x2. */
+    private int multiplier = 1;
+
+    public void setMultiplier(int multiplier) {
+        this.multiplier = Math.max(1, multiplier);
+    }
+
+    public int multiplier() {
+        return multiplier;
+    }
+
     public void reset(GamePlayer gp, int start) {
         gp.points = start;
         gp.pointsEarned = 0;
@@ -14,8 +25,9 @@ public final class EconomyManager {
 
     public void reward(GamePlayer gp, int amount) {
         if (amount <= 0) return;
-        gp.points += amount;
-        gp.pointsEarned += amount;
+        int gain = amount * multiplier;
+        gp.points += gain;
+        gp.pointsEarned += gain;
     }
 
     /** Débite si possible. Renvoie false sans rien changer si le solde est insuffisant. */
