@@ -1,0 +1,57 @@
+name: Build CleanZombies
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Gradle 9.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.1.0"
+
+      - name: Compiler le plugin et le pack
+        run: gradle build --no-daemon --stacktrace
+
+      - name: SHA-1 du pack (à copier dans config.yml → resource-pack.sha1)
+        run: |
+          cd build/resourcepack
+          sha1sum CleanZombies-pack.zip | cut -d' ' -f1 > CleanZombies-pack.sha1
+          echo "SHA-1 du pack : $(cat CleanZombies-pack.sha1)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CleanZombies
+          path: |
+            build/libs/CleanZombies-*.jar
+            build/resourcepack/CleanZombies-pack.zip
+            build/resourcepack/CleanZombies-pack.sha1
+
+      # Sur un tag vX.Y.Z : publication d'une release GitHub.
+      # L'URL du zip dans la release peut servir de resource-pack.url (lien public et stable).
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/libs/CleanZombies-*.jar
+            build/resourcepack/CleanZombies-pack.zip
+            build/resourcepack/CleanZombies-pack.sha1
